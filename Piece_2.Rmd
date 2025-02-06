@@ -1,0 +1,151 @@
+---
+title: "Piece 2"
+author: "Benjamin Egan"
+date: "2025-02-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Ok so I did this a year ago when I was trying things and now I no longer remember which packages I need. So I left them all in. I hate it too...
+library(haven)
+library(lme4)
+library(lmerTest)
+library(psych)
+library(emmeans)
+library(ltm)
+library(Matrix)
+library(sjPlot)
+library(reshape2)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(survMisc)
+library(hrbrthemes)
+library(geomtextpath)
+
+data <- read_spss("FDM Dataset for Data Science_2.sav")
+
+```
+
+
+
+## Tragectories and Variations of Family Decision Making Across Countires
+
+In this piece, I will demonstrate my graphing abilities.
+
+### What is Family Decision Making
+
+As previously stated, adolescents were presented with a variety o topics that families with adolescents often have to make decisions about, and chose the answer that best reflected who made most of the decisions on each topic. The scale ranged from 1 (My parents decide this without discussing it with me) to 5 (I decide this without discussing it with my parents), with 3 representing a joint decision (My parents and I make the decision together). Adolescents were asked these questions at three timepoints, two years and three years after the initial observation.
+
+
+```{r seting up FDM, echo = FALSE}
+
+data$Country <- as.factor(data$IDN)
+Country <- factor(data$Country) #country into categorical variable
+data$AgeCM <- data$Age - mean(data$Age, na.rm=TRUE) #mean center age
+data$FDMCM <- data$FDM - mean(data$FDM, na.rm=TRUE) #mean center FDM
+
+#change values for males from 1 to 0: data$ChGender <- replace(data$ChGender, data$ChGender < 2, 0) 
+#change values for females from 2 to 1: data$ChGender <- replace(data$ChGender, data$ChGender > 0, 1) 
+
+```
+
+```{r Renaming Countries, echo=FALSE}
+
+#renaming Countries
+levels(data$Country)[levels(data$Country)=='1'] <- 'China-Jinan'
+levels(data$Country)[levels(data$Country)=='2'] <- 'China-Shanghai'
+levels(data$Country)[levels(data$Country)=='3'] <- 'Italy-Naples'
+levels(data$Country)[levels(data$Country)=='4'] <- 'Italy-Rome'
+levels(data$Country)[levels(data$Country)=='5'] <- 'Kenya'
+levels(data$Country)[levels(data$Country)=='6'] <- 'Philippines'
+levels(data$Country)[levels(data$Country)=='7'] <- 'Thailand'
+levels(data$Country)[levels(data$Country)=='8'] <- 'Sweden'
+levels(data$Country)[levels(data$Country)=='9'] <- 'USA-African American'
+levels(data$Country)[levels(data$Country)=='10'] <- 'USA-European American'
+levels(data$Country)[levels(data$Country)=='11'] <- 'USA-Hispanic'
+levels(data$Country)[levels(data$Country)=='12'] <- 'Colombia'
+levels(data$Country)[levels(data$Country)=='13'] <- 'Jordan'
+levels(data$Country)[levels(data$Country)=='16'] <- 'India'
+levels(data$Country)[levels(data$Country)=='17'] <- 'China-Chongqing'
+data$Country <- relevel(data$Country, ref = 'USA-Hispanic')
+
+```
+### Data Being Used 
+
+Several different variables were used for the following analyses. Alongside Family Decision Making (FDM), Age (Age), Socio-economic Status (SES), Gender (ChGender), and Country of origin (Country) were used to help identify potential trends in the data. Below are the countries utilized in this dataset. For now, I will only be working with people from the United States. 
+
+```{r showing data}
+levels(data$Country)
+
+```
+
+## Plotting Family Decision Making in the United States
+
+
+```{r multilevel model, echo = FALSE}
+#TEXT FOR IF I INCLUDE MY MODEL:   My first step was to create a multi-level model. The model below uses Family Decision Making as the outcome. The inputs were gender, country, and an interaction between age and country.
+
+#model I used for FDM. Looking to incorporate this somehow? Not sure how.
+USdata$Country <- relevel(USdata$Country, ref = 'USA-European American')
+USdata$AgeCM <- USdata$Age - mean(USdata$Age, na.rm=TRUE) #mean center age
+USdata$FDMCM <- USdata$FDM - mean(USdata$FDM, na.rm=TRUE) #mean center age
+data$Age_Exact <- round(data$Age, digits = 0)
+model.FDM_USA <- lmer(FDM ~ SES + ChGender + AgeCM + Country +   + Country*AgeCM + (1|ID), data = USdata)
+```
+
+I can begin by making a plot of Age and Family Decision Making. 
+
+```{r base plot, warning = FALSE}
+
+#graphing FDM data > use linetype = Country to get dotted lines
+data$Age_Exact <- round(data$Age, digits = 0)
+
+data %>%
+ggplot(
+  aes(x=Age_Exact, 
+      y = FDM, 
+      group = Country, 
+      color = Country)) + 
+  geom_line(stat = "summary", fun = "mean") +
+  theme_bw() +
+  scale_color_manual(values=c("#000000","#ff0000","#8F00FF", "#0bb4ff", "#50e991", "#e6d800", "#fb19f5", "#ffa300", "#dc0ab4", "#0000fB", "#b3d4ff", "#00bfa0", "#00ffff")) +
+  labs(
+    x = "Age", 
+    y = "Family Decision Making", 
+    color = "Country",
+    title = "Age and Country Effects on Family Decision Making")
+
+```
+This plot is ok, but there are majors ways to improve it. There is no rhyme or reason to the colors included, and it's hard to visualize the trend of "Family Decision Making increases as adolescents increase in age."
+
+
+
+```{r base plot, warning = FALSE}
+
+#graphing FDM data > use linetype = Country to get dotted lines
+data$Age_Exact <- round(data$Age, digits = 0)
+
+data %>%
+ggplot(
+  aes(x=Age_Exact, 
+      y = FDM, 
+      group = Country, 
+      color = Country)) + 
+  geom_line(stat = "summary", fun = "mean") +
+  theme_bw() +
+  scale_color_manual(values=c("#000000","#ff0000","#8F00FF", "#0bb4ff", "#50e991", "#e6d800", "#fb19f5", "#ffa300", "#dc0ab4", "#0000fB", "#b3d4ff", "#00bfa0", "#00ffff")) +
+  labs(
+    x = "Age", 
+    y = "Family Decision Making", 
+    color = "Country",
+    title = "Age and Country Effects on Family Decision Making")
+
+#change to geom_smooth, collapse country data (ex, all US data), change colors to represent continents, change title to better reflect data, look at doing a spaghetti plot (each person put on a graph).
+
+#package ggthemes <- classic color schemes that are used by several
+
+
+```
