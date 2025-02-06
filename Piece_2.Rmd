@@ -98,7 +98,7 @@ model.FDM_outcome <- lmer(FDM ~  SES + ChGender + AgeCM + Country + AgeCM*Countr
 
 I can begin by making a plot of Age and Family Decision Making. 
 
-```{r base plot, warning = FALSE}
+```{r base plot, message = FALSE, warning = FALSE}
 
 data %>%
 ggplot(
@@ -127,7 +127,7 @@ This plot is ok, but there are majors ways to improve it. There is no rhyme or r
 
 
 My first suggestion is to smooth out the lines.
-```{r smooth out, warning = FALSE}
+```{r smooth out, message = FALSE, warning = FALSE}
 
 data %>%
 ggplot(
@@ -149,12 +149,24 @@ ggplot(
 
 ```
 
-This had the effect of minimizing the noise of the first graph. It is easier to see the overall positive linear trend created by the  
+This had the effect of minimizing the noise of the first graph. It is easier to see the overall positive linear trend of Family Decision Making as adolescents get older.
 
-```{r base plot3, warning = FALSE}
+The next suggestion is to combine some of the data. For example, we can combine the United states ethnicities to create one USA line.
+```{r collapse countries}
 
+Country_data <- mutate(
+  
+)
+  
+  subset(data,IDN ==9 | IDN == 10 | IDN == 11)
+USdata$Country <- as.factor(USdata$IDN)
+levels(USdata$Country)[levels(USdata$Country)=='9'] <- 'USA-African American'
+levels(USdata$Country)[levels(USdata$Country)=='10'] <- 'USA-European American'
+levels(USdata$Country)[levels(USdata$Country)=='11'] <- 'USA-Hispanic'
 
+```
 
+```{r collapse countries plot, message = FALSE, warning = FALSE}
 data %>%
 ggplot(
   aes(x=Age_Exact, 
