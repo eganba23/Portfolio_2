@@ -1,0 +1,251 @@
+library(haven)
+library(lme4)
+library(lmerTest)
+library(psych)
+library(emmeans)
+library(ltm)
+library(Matrix)
+library(sjPlot)
+library(reshape2)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(survMisc)
+library(hrbrthemes)
+library(geomtextpath)
+
+
+setwd("/Users/egan/Desktop/Gradschool/My Research")
+data <- read_spss("Current Dataset 2-28.sav")
+view(data)
+data$Country <- as.factor(data$IDN)
+Country <- factor(data$Country) #country into categorical variable
+data$AgeCM <- data$Age - mean(data$Age, na.rm=TRUE) #mean center age
+data$FDMCM <- data$FDM - mean(data$FDM, na.rm=TRUE) #mean center age
+
+
+#Data described by country describe.by(data, Country)
+
+
+#Figure out country closest to FDM grand mean for reference group - USA Hispanic
+FDM_means <- aggregate(x=data$FDM, by = list(data$Country), FUN = mean, na.rm=TRUE)
+print(FDM_means)
+
+
+#Figure out country closest to Int grand mean for reference group - Kenya
+Int_means <- aggregate(x=data$Int, by = list(data$Country), FUN = mean, na.rm=TRUE)
+print(Int_means)
+
+#Figure out country closest to Ext grand mean for reference group - Italy-Naples
+ext_means <- aggregate(x=data$ext, by = list(data$Country), FUN = mean, na.rm=TRUE)
+print(ext_means)
+
+
+
+#change values for males from 1 to 0 
+data$ChGender <- replace(data$ChGender, data$ChGender < 2, 0) 
+#change values for females from 2 to 1 
+data$ChGender <- replace(data$ChGender, data$ChGender > 0, 1) 
+
+
+#renaming Countries
+levels(data$Country)[levels(data$Country)=='1'] <- 'China-Jinan'
+levels(data$Country)[levels(data$Country)=='2'] <- 'China-Shanghai'
+levels(data$Country)[levels(data$Country)=='3'] <- 'Italy-Naples'
+levels(data$Country)[levels(data$Country)=='4'] <- 'Italy-Rome'
+levels(data$Country)[levels(data$Country)=='5'] <- 'Kenya'
+levels(data$Country)[levels(data$Country)=='6'] <- 'Philippines'
+levels(data$Country)[levels(data$Country)=='7'] <- 'Thailand'
+levels(data$Country)[levels(data$Country)=='8'] <- 'Sweden'
+levels(data$Country)[levels(data$Country)=='9'] <- 'USA-African American'
+levels(data$Country)[levels(data$Country)=='10'] <- 'USA-European American'
+levels(data$Country)[levels(data$Country)=='11'] <- 'USA-Hispanic'
+levels(data$Country)[levels(data$Country)=='12'] <- 'Colombia'
+levels(data$Country)[levels(data$Country)=='13'] <- 'Jordan'
+levels(data$Country)[levels(data$Country)=='16'] <- 'India'
+levels(data$Country)[levels(data$Country)=='17'] <- 'China-Chongqing'
+levels(data$Country)
+data$Country <- relevel(data$Country, ref = 'USA-Hispanic')
+
+
+#Create Dataset with only USA Data
+USdata <- subset(data,IDN ==9 | IDN == 10 | IDN == 11)
+USdata$Country <- as.factor(USdata$IDN)
+Country <- factor(data$Country) #country into categorical variable
+levels(USdata$Country)[levels(USdata$Country)=='9'] <- 'USA-African American'
+levels(USdata$Country)[levels(USdata$Country)=='10'] <- 'USA-European American'
+levels(USdata$Country)[levels(USdata$Country)=='11'] <- 'USA-Hispanic'
+USdata$Country <- relevel(USdata$Country, ref = 'USA-European American')
+USdata$AgeCM <- USdata$Age - mean(USdata$Age, na.rm=TRUE) #mean center age
+USdata$FDMCM <- USdata$FDM - mean(USdata$FDM, na.rm=TRUE) #mean center age
+
+
+#time predicting FDM, country as predictor, and interaction
+model.FDM_outcome <- lmer(FDM ~  SES + ChGender + AgeCM + Country + AgeCM*Country + (1|ID), data = data)
+anova(model.FDM_outcome)
+summary(model.FDM_outcome)
+tab_model(model.FDM_outcome)
+
+
+
+#+ AgeCM*FDMCM + Country*AgeCM
+
+
+
+#FDM predicting internalizing symptoms
+model.int_outcome <- lmer(Int ~ SES + ChGender + AgeCM + Country + FDMCM + Country*FDMCM  + (1|ID), data = data)
+anova(model.int_outcome)
+summary(model.int_outcome)
+tab_model(model.int_outcome)
+
+
+#Country*AgeCM + AgeCM*FDMCM +
+
+#FDM predicting externalizing symptoms
+model.ext_outcome <- lmer(ext ~ SES + ChGender + AgeCM + Country + FDMCM + FDMCM*Country +  (1|ID), data = data)
+anova(model.ext_outcome)
+summary(model.ext_outcome)
+tab_model(model.ext_outcome)
+
+
+
+#Creating Tables
+
+
+
+
+
+#graphing FDM data > use linetype = Country to get dotted lines
+data$Age_Exact <- round(data$Age, digits = 0)
+
+ggplot(data, aes(x=Age_Exact, y = FDM, group = Country, color = Country,)) + 
+  geom_line(stat = "summary", fun = "mean") +
+  theme_bw() +
+  scale_color_manual(values=c("#000000","#ff0000","#8F00FF", "#0bb4ff", "#50e991", "#e6d800", "#fb19f5", "#ffa300", "#dc0ab4", "#0000fB", "#b3d4ff", "#00bfa0", "#00ffff")) +
+  labs(x = "Age", y = "Family Decision Making", color = "Country") +
+  ggtitle("Age and Country Effects on Family Decision Making") +
+  theme(plot.title = element_text(hjust=0.5),legend.key.size = unit(1.2, 'cm'))
+
+#graphing Int data > use linetype = Country to get dotted lines
+data$Age_Exact <- round(data$Age, digits = 0)
+ggplot(data, aes(x=FDMCM, y = Int, group = Country, color = Country,)) + 
+  geom_line(stat = "summary", fun = "mean") +
+  theme_bw() +
+  scale_color_manual(values=c("#000000","#ff0000","#8F00FF", "#0bb4ff", "#50e991", "#e6d800", "#fb19f5", "#ffa300", "#dc0ab4", "#0000fB", "#b3d4ff", "#00bfa0", "#00ffff")) +
+  labs(x = "Family Decision Making", y = "Internalizing Symptoms", color = "Country") +
+  ggtitle("Country and Family Decision Making Effects on Internalizing Symptoms") +
+  theme(plot.title = element_text(hjust=0.5),legend.key.size = unit(1.2, 'cm'))
+
+
+#graphing ext data > use linetype = Country to get dotted lines
+data$Age_Exact <- round(data$Age, digits = 0)
+ggplot(data, aes(x=FDMCM, y = ext, group = Country, color = Country,)) + 
+  geom_line(stat = "summary", fun = "mean") +
+  theme_bw() +
+  scale_color_manual(values=c("#000000","#ff0000","#8F00FF", "#0bb4ff", "#50e991", "#e6d800", "#fb19f5", "#ffa300", "#dc0ab4", "#0000fB", "#b3d4ff", "#00bfa0", "#00ffff")) +
+  labs(x = "Familiy Decision Making", y = "Externalizing Symptoms", color = "Country") +
+  ggtitle("Country and Family Decision Making Effects on Externalizing Symptoms") +
+  theme(plot.title = element_text(hjust=0.5),legend.key.size = unit(1.2, 'cm'))
+
+
+
+
+#FDM predicting internalizing symptoms in US
+USdata$Country <- relevel(USdata$Country, ref = 'USA-European American')
+model.int_USA <- lmer(Int ~ SES + ChGender + AgeCM + Country + FDMCM + Country*FDMCM + Country*AgeCM + AgeCM*FDMCM  + (1|ID), data = USdata)
+anova(model.int_USA)
+summary(model.int_USA)
+tab_model(model.int_USA)
+
+
+#FDM predicting externalizing symptoms in US
+model.ext_USA <- lmer(ext ~ SES + ChGender + AgeCM + Country + FDMCM + Country*FDMCM + Country*AgeCM + AgeCM*FDMCM + (1|ID), data = USdata)
+anova(model.ext_USA)
+summary(model.ext_USA)
+tab_model(model.ext_USA)
+
+
+#Means broken out by age
+aggregate(x=data$FDM, by=list(data$Age_Exact,data$Country), FUN=mean)
+
+
+
+#STOP RUNNNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#Potential way to present results
+install.packages("MLMusingR")
+library(modelsummary)
+library(lmerTest)
+library(MLMusingR)
+data(engage) #in the MLMusingR package
+
+modelsummary(model.FDM_outcome, stars = TRUE,
+             title = 'Multilevel Regression Model Results for
+FYP.')
+
+modelsummary(list("Internalizing" = model.int_outcome,
+                  "Externalizing" = model.ext_outcome), stars = TRUE, gof_omit = 'RMSE|IC|Obs',
+             coef_omit = "SD", title = 'Multilevel Regression Model Results for
+              FYP.')
+
+
+
+Country <- factor(USA$Country) #country into categorical variable
+
+#USA FDM predicting internalizing symptoms
+model.int_USA <- lmer(Int ~ SES + ChGender + AgeCM + Country + FDMCM + Country*FDMCM + Country*AgeCM + AgeCM*FDMCM + Country*AgeCM*FDMCM + (1|ID), data = USdata)
+anova(model.int_USA)
+summary(model.int_USA)
+tab_model(model.int_USA)
+
+
+
+
+
+data$group <- as.factor(ifelse(data$IDN=4,'Italy-Rome'))
+
+
+#mean center age, assign each level to name (and set reference cateogry), run both int and ext model (int as outcome, FDM&country&age&covariates)
+
+
+#calcualte grandmean of age, create new variable similar to how I did (data$age-mean)
+#could look at mean that's the closest to the average FDM mean
+#going to group mean center
+
+
+mean(data$ext, na.rm=TRUE)
+
+#how to run means and SD
+mean(data$FDM, na.rm=TRUE)
+
+mean(data$Age, na.rm=TRUE)
+
+sd(data$FDM, na.rm=TRUE)
+
+aggregate(data$FDM, list(data$Country), FUN=mean)
+
+
+
+
+#post-hoc tests - the current bane of my existance
+emmeans(the.model, list(pairwise ~ Index1), adjust = "tukey")
+emmeans(the.model, list(pairwise ~ IDN), adjust = "tukey")
+
+
+
+# testing assumptions of homogeneity of residuals and normality
+model.resids <- residuals(the.model)
+with.resids <- cbind(data, model.resids) #just get these into one data frame; makes life easier
+by(with.resids$model.resids, with.resids$Country, sd)
+by(with.resids$model.resids, with.resids$Index1, sd)
+plot(density(model.resids))
+
+
+# Plot MLM
+MLM_plot <-ggplot(data, aes(x= IDN, y= FDM, fill= Index1)) + geom_boxplot() + coord_flip() + labs(
+  title = "FDM For Wave + Country",
+  x = "Country",
+  y = "Decision-Making Score") + labs(fill = "")
+
+MLM_plot + scale_fill_discrete(labels = c("Country 1", "Country 2", "Country 3", "Country 4", "Country 5", "Country 6", "Country 7", "Country 8", "Country 9", "Country 10", "Country 11", "Country 12", "Country 13", "Country 14", "Country 15", "Country 16", "Country 17"))
+
