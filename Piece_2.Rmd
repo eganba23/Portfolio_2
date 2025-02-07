@@ -154,28 +154,38 @@ This had the effect of minimizing the noise of the first graph. It is easier to 
 The next suggestion is to combine some of the data. For example, we can combine the United states ethnicities to create one USA line.
 ```{r collapse countries}
 
-Country_data <- mutate(
-  
-)
-  
-  subset(data,IDN ==9 | IDN == 10 | IDN == 11)
-USdata$Country <- as.factor(USdata$IDN)
-levels(USdata$Country)[levels(USdata$Country)=='9'] <- 'USA-African American'
-levels(USdata$Country)[levels(USdata$Country)=='10'] <- 'USA-European American'
-levels(USdata$Country)[levels(USdata$Country)=='11'] <- 'USA-Hispanic'
+Country_Collapse <- data %>%
+  mutate(Country = case_when(
+    Country %in% c("USA-African American", "USA-European American", "USA-Hispanic") ~ "United States",
+    Country %in% c("China-Shanghai", "China-Chongqing") ~ "China",
+    Country %in% c("Italy-Naples", "Italy-Rome") ~ "Italy",
+    Country == "Kenya" ~ "Kenya",
+    Country == "Philippines" ~ "Philippines",
+    Country == "Thailand" ~ "Thailand",
+    Country == "Sweden" ~ "Sweden",
+    Country == "Colombia" ~ "Colombia",
+    Country == "Jordan" ~ "Jordan",
+    Country == "India" ~ "India"
+  ))
 
 ```
 
+
+
+Now we can create a plot that just reflects countries.
 ```{r collapse countries plot, message = FALSE, warning = FALSE}
-data %>%
+Country_Collapse %>%
 ggplot(
   aes(x=Age_Exact, 
       y = FDM, 
       group = Country, 
       color = Country)) + 
-  geom_line(stat = "summary", fun = "mean") +
+  geom_smooth(
+    size = .5,
+    span = 1,
+    se = FALSE) +
   theme_bw() +
-  scale_color_manual(values=c("#000000","#ff0000","#8F00FF", "#0bb4ff", "#50e991", "#e6d800", "#fb19f5", "#ffa300", "#dc0ab4", "#0000fB", "#b3d4ff", "#00bfa0", "#00ffff")) +
+  scale_color_manual(values=c("#ff0000","#8F00FF", "#0bb4ff", "#50e991", "#e6d800", "#fb19f5", "#ffa300", "#0000fB", "black", "#00bfa0")) +
   labs(
     x = "Age", 
     y = "Family Decision Making", 
@@ -188,3 +198,7 @@ ggplot(
 
 
 ```
+
+Comment on the colors
+
+
