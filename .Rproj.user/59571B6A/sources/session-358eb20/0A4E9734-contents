@@ -100,7 +100,7 @@ model.FDM_outcome <- lmer(FDM ~  SES + ChGender + AgeCM + Country + AgeCM*Countr
 
 I can begin by making a plot of Age and Family Decision Making. 
 
-```{r base plot, message = FALSE, warning = FALSE}
+```{r base plot, fig.height=6, fig.width=8, message = FALSE, warning = FALSE}
 
 data %>%
 ggplot(
@@ -131,7 +131,7 @@ This plot is ok, but there are majors ways to improve it. There is no rhyme or r
 
 
 My first suggestion is to smooth out the lines.
-```{r smooth out, message = FALSE, warning = FALSE}
+```{r smooth out, fig.height=6, fig.width=8, message = FALSE, warning = FALSE}
 
 data %>%
 ggplot(
@@ -177,7 +177,7 @@ Country_Collapse <- data %>%
 
 
 Now we can create a plot that just reflects countries.
-```{r collapse countries plot, message = FALSE, warning = FALSE}
+```{r collapse countries plot, fig.height=6, fig.width=8, message = FALSE, warning = FALSE}
 Country_Collapse %>%
 ggplot(
   aes(x=Age_Exact, 
@@ -215,7 +215,7 @@ ggplot(
 This helped clean up some of the clutter of the extra lines. I also included the average FDM line to help show the distinct differences across countries.
 
 
-```{r facet by index, message = FALSE, warning = FALSE}
+```{r facet by index, fig.height=6, fig.width=12, message = FALSE, warning = FALSE}
 Country_Collapse <- Country_Collapse %>%
   mutate(Index1 = case_when(
     Index1 == "1" ~ "Time 1",
@@ -253,3 +253,37 @@ Country_Collapse %>% ggplot(
     title = "Country Effects on Family Decision Making Over Time")
 
 ```
+
+The benefit of this method is we can hilight the fact that this was longitudinal data. We can more easily see how the data changes across time. For comparison, the plot below has the axes locked across all plots. That can help us see changes that aren't warped by the axes.
+
+```{r facet fixed width, fig.height=6, fig.width=12, message = FALSE, warning = FALSE, echo = FALSE}
+Country_Collapse %>% ggplot(
+  aes(x=Age_Exact, 
+      y = FDM, 
+      group = Country, 
+      color = Country)) + 
+  geom_smooth(
+    aes(group = 1),
+    method = "loess",
+    formula = y~x,
+    se = TRUE,
+    alpha = .2,
+    color = "black",
+    size = .5
+  ) +
+  facet_wrap(~Index1) +
+  geom_smooth(
+    size = .5,
+    span = 1,
+    se = FALSE
+    ) +
+  theme_bw() +
+  scale_color_manual(values=c("#ff0000","#8F00FF", "#0bb4ff", "#50e991", "#e6d800", "#fb19f5", "#ffa300", "#0000fB", "maroon", "#00bfa0")) +
+  labs(
+    x = "Age", 
+    y = "Family Decision Making", 
+    color = "Country",
+    title = "Country Effects on Family Decision Making Over Time")
+```
+
+A final way we can look at the data is using a spagetti plot.
