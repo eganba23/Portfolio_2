@@ -3,7 +3,7 @@
     "path": "~/Desktop/Gradschool/Data Science/Portfolio/Portfolio_2 /Piece_2.Rmd",
     "project_path": "Piece_2.Rmd",
     "type": "r_markdown",
-    "hash": "0",
+    "hash": "3656826098",
     "contents": "",
     "dirty": false,
     "created": 1738875943317.0,
@@ -12,16 +12,16 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "290,61",
-        "scrollLine": "287",
+        "cursorPosition": "314,184",
+        "scrollLine": "313",
         "last_setup_crc32": "358eb20dd7a10c7"
     },
     "folds": "",
-    "lastKnownWriteTime": 1739556265,
+    "lastKnownWriteTime": 1739556911,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1739556265274,
+    "last_content_update": 1739556911888,
     "read_only": false,
     "read_only_alternatives": []
 }

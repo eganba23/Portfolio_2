@@ -35,7 +35,7 @@ data <- read_spss("FDM Dataset for Data Science_2.sav")
 
 ## Tragectories and Variations of Family Decision Making Across Countires
 
-In this piece, I will demonstrate my graphing abilities.
+In this piece, I will further demonstrate my graphing abilities.
 
 ### What is Family Decision Making
 
@@ -206,10 +206,6 @@ ggplot(
     color = "Country",
     title = "Country Effects on Family Decision Making Over Time")
 
-  scale_fill_brewer(palette = "Set1")
-
-#change to geom_smooth, collapse country data (ex, all US data), change colors to represent continents, change title to better reflect data, look at doing a spaghetti plot (each person put on a graph).
-
 ```
 
 This helped clean up some of the clutter of the extra lines. I also included the average FDM line to help show the distinct differences across countries.
@@ -288,7 +284,7 @@ Country_Collapse %>% ggplot(
 
 A final way we can look at the data is using a spaghetti plot. A spaghetti plot takes all individual observations and plots them onto the graph.
 
-```{r spaghetti, fig.height=6, fig.width=12, message = FALSE, warning = FALSE}
+```{r spaghetti, fig.height=10, fig.width=12, message = FALSE, warning = FALSE}
 
 
 Country_Collapse %>% ggplot(
@@ -299,7 +295,8 @@ Country_Collapse %>% ggplot(
  geom_smooth(
     size = .5,
     span = 1,
-    se = FALSE
+    se = FALSE,
+    show.legend = FALSE
     ) +
 facet_wrap(~Country, scales = "free") +
   theme_bw() +
@@ -308,9 +305,12 @@ scale_color_manual(values=c("#ff0000","#8F00FF", "#0bb4ff", "#50e991", "#e6d800"
     x = "Age", 
     y = "Family Decision Making", 
     color = "Country",
-    title = "Country Effects on Family Decision Making Over Time")
+    title = "Country Effects on Family Decision Making Over Time")+
+  theme(plot.title = element_text(size = 20),
+        axis.title = element_text(size = 15),
+        axis.text = element_text(size = 12))
 
 ```
 
-As this graph currently stands, I would only use it to demonstrate that there is a lot of variation within each country.
+As this graph currently stands, I would only use it to demonstrate that there is a lot of variation within each country. It can look confusing to the readers and be hard to understand.
 
