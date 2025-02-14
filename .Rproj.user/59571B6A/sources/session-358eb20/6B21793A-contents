@@ -1,0 +1,221 @@
+---
+title: "Lab 04 - La Quinta is Spanish for next to Denny's, Pt. 1"
+author: "Benjamin Egan"
+date: "2/5"
+output: github_document
+---
+
+
+```{r load-packages, message = FALSE, echo = FALSE}
+library(tidyverse) 
+library(dsbox) 
+```
+
+```{r load-data, message = FALSE, echo = FALSE}
+states <- read_csv("data/states.csv")
+```
+
+### Exercise 1 - Look at Denny's dataset
+
+```{r examine dennys dataset}
+
+dennys %>%
+  nrow()
+dennys %>%
+ncol()
+
+```
+There are 1,643 rows and 6 columns in the Denny's dataset
+
+### Exercise 2 - Look at La Quinta dataset
+
+```{r examine La Quinta dataset}
+
+laquinta %>%
+  nrow()
+laquinta %>%
+ncol()
+
+```
+There are 909 rows and 6 columns in the La Quinta dataset
+
+### Exercise 3 - International locations?
+
+Based on the website, Denny's is only based in the United States (if I google it, apparently there are a handful of Denny's located in Canada, Mexico, etc.). For La Quinta, there are several hotels in China, New Zealand, Turkey, the United Arab Emirates, Chile, Colombia, and Ecquador.
+
+...
+
+### Exercise 4 - Dataset observations
+
+```{r brainstorm locations}
+view(dennys)
+view(laquinta)
+```
+
+Looking at the dataset, there is a column for states, latitude, longitude. One way we could do this is by filtering out state abbreviations. This should leave us with only international data. Another way to do this is create a filter that filters out rows based on their latitude and longitude. Any observations that match latitude and longitude in the United states would be filtered out.
+
+...
+
+### Exercise 5 - Examine Denny's dataset
+
+```{r find Dennys international}
+
+dennys %>%
+  filter(!(state %in% states$abbreviation))
+
+```
+There are no Denny's outside the United States in the dataset.
+
+...
+
+### Exercise 6 - Creating a USA variable for Denny's 
+
+```{r create Dennys USA variable}
+
+dn <- dennys %>%
+  mutate(country = "United States")
+#view(dn)
+```
+
+...
+
+### Exercise 7 - Examine La Quinta dataset 
+
+```{r find La Quinta international}
+
+laquinta %>%
+  filter(!(state %in% states$abbreviation))
+
+```
+Places and state tags for international hotels:
+Mexico (AG)
+Mexico (QR)
+Mexico (CH)
+Mexico (NL)
+Colombia (ANT)
+Mexico (NL)
+Mexico (NL)
+Canada (ON)
+Mexico (VE)
+Mexico (PU)
+Mexico (PU)
+Mexico (SL)
+Honduras (FM)
+Canada (BC)
+
+...
+
+### Exercise 8 - Creating a Country variable for La Quinta
+
+```{r create La Quinta USA variable}
+
+lq_USA <- laquinta %>%
+  mutate(country = case_when(
+    state %in% state.abb ~ "United States",
+    state %in% c("ON", "BC") ~ "Canada",
+    state == "ANT" ~ "Colombia",
+    state %in% c("AG", "QR", "CH", "NL", "VE","PU","SL") ~ "Mexico",
+    state == "FM" ~ "Honduras"
+  ))
+
+#view(lq)
+
+lq <- lq_USA %>%
+  filter(country == "United States")
+
+```
+
+...
+
+### Exercise 9 - Breakdown by state
+
+```{r breakdown by state}
+
+dn %>%
+  count(state, sort = TRUE) %>%
+  inner_join(states, by = c("state" = "abbreviation"))
+
+lq %>%
+  count(state, sort = TRUE) %>%
+  inner_join(states, by = c("state" = "abbreviation"))
+
+```
+Denny's: California has the most locations with 403
+
+La Quinta: Texas has the most locations with 237
+
+Honestly I didn't know what to expect. I am surprised at the drop off (for example, the 5th most state with La Quintas is Tennessee with 30).
+
+...
+
+### Exercise 10 - Combine and graph
+
+```{r combination Taco bell and Pizza Hut}
+
+dn <- dn %>%
+  mutate(establishment = "Denny's")
+lq <- lq %>%
+  mutate(establishment = "La Quinta")
+
+dn_lq <- bind_rows(dn, lq)
+
+ggplot(dn_lq, mapping = aes(
+  x = longitude,
+  y = latitude,
+  color = establishment
+)) +
+  geom_point()
+
+```
+
+...
+
+### Exercise 11 - Examining and Visualizing North Carolina data
+
+```{r filter for NC}
+
+NC_data <- dn_lq %>%
+  filter(state == "NC")
+
+NC_data %>%
+  ggplot( mapping = aes(
+    x = longitude,
+    y = latitude,
+    color = establishment
+)) +
+    geom_point(alpha = .5) +
+  scale_color_manual(values=c('Blue','Red'))+
+  labs(
+    x = "Longitude",
+    y = "Latitude",
+    title = "Distribution of Denny's and La Quinta in North Carolina" 
+  )
+
+```
+Visually, Mitch's joke does not appear to hold. There are a handful of locations where they are next to each other, but there are a handful of La Quintas that are not next to Denny's.
+
+...
+
+### Exercise 12 - Examining and Visualizing  Texas data
+
+```{r filter for Texas}
+
+TX_data <- dn_lq %>%
+  filter(state == "TX")
+
+TX_data %>%
+  ggplot( mapping = aes(
+    x = longitude,
+    y = latitude,
+    color = establishment
+)) +
+    geom_point(alpha = .3) +
+  scale_color_manual(values=c('Blue','Red'))+
+  labs(
+    x = "Longitude",
+    y = "Latitude",
+    title = "Distribution of Denny's and La Quinta in Texas" 
+  )
+
+```
+It looks like the joke holds up more in Texas than it does in North Carolina. There are a lot of overlapping Denny's and La Quintas.

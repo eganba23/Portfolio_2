@@ -1,0 +1,232 @@
+---
+title: "Piece 1"
+author: "Benjamin Egan"
+date: "2025-01-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Ok so I did this a year ago when I was trying things and now I no longer remember which packages I need. So I left them all in. I hate it too...
+library(haven)
+library(lme4)
+library(lmerTest)
+library(psych)
+library(emmeans)
+library(ltm)
+library(Matrix)
+library(sjPlot)
+library(reshape2)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(survMisc)
+library(hrbrthemes)
+library(geomtextpath)
+
+data <- read_spss("FDM Dataset for Data Science.sav")
+
+```
+
+
+
+## Trajectories and Variations of Family Decision Making in the United States
+
+In this piece, I will demonstrate my graphing abilities.
+
+### What is Family Decision Making
+
+Adolescents were presented with a variety o topics that families with adolescents often have to make decisions about, and chose the answer that best reflected who made most of the decisions on each topic. The scale ranged from 1 (My parents decide this without discussing it with me) to 5 (I decide this without discussing it with my parents), with 3 representing a joint decision (My parents and I make the decision together). Adolescents were asked these questions at three timepoints, two years and three years after the initial observation.
+
+
+```{r seting up FDM, echo = FALSE}
+
+data$Country <- as.factor(data$IDN)
+Country <- factor(data$Country) #country into categorical variable
+data$AgeCM <- data$Age - mean(data$Age, na.rm=TRUE) #mean center age
+data$FDMCM <- data$FDM - mean(data$FDM, na.rm=TRUE) #mean center FDM
+
+#change values for males from 1 to 0: data$ChGender <- replace(data$ChGender, data$ChGender < 2, 0) 
+#change values for females from 2 to 1: data$ChGender <- replace(data$ChGender, data$ChGender > 0, 1) 
+
+```
+
+```{r Renaming Countries, echo=FALSE}
+
+#renaming Countries
+levels(data$Country)[levels(data$Country)=='1'] <- 'China-Jinan'
+levels(data$Country)[levels(data$Country)=='2'] <- 'China-Shanghai'
+levels(data$Country)[levels(data$Country)=='3'] <- 'Italy-Naples'
+levels(data$Country)[levels(data$Country)=='4'] <- 'Italy-Rome'
+levels(data$Country)[levels(data$Country)=='5'] <- 'Kenya'
+levels(data$Country)[levels(data$Country)=='6'] <- 'Philippines'
+levels(data$Country)[levels(data$Country)=='7'] <- 'Thailand'
+levels(data$Country)[levels(data$Country)=='8'] <- 'Sweden'
+levels(data$Country)[levels(data$Country)=='9'] <- 'USA-African American'
+levels(data$Country)[levels(data$Country)=='10'] <- 'USA-European American'
+levels(data$Country)[levels(data$Country)=='11'] <- 'USA-Hispanic'
+levels(data$Country)[levels(data$Country)=='12'] <- 'Colombia'
+levels(data$Country)[levels(data$Country)=='13'] <- 'Jordan'
+levels(data$Country)[levels(data$Country)=='16'] <- 'India'
+levels(data$Country)[levels(data$Country)=='17'] <- 'China-Chongqing'
+data$Country <- relevel(data$Country, ref = 'USA-Hispanic')
+
+```
+### Data Being Used 
+
+Several different variables were used for the following analyses. Alongside Family Decision Making (FDM), Age (AgeCM), Socio-economic Status (SES), Gender (ChGender), and Country of origin (Country) were used to help identify potential trends in the data. Below are the countries utilized in this dataset. For now, I will only be working with people from the United States. 
+
+```{r showing data}
+levels(data$Country)
+
+```
+### US Dataset Creation
+
+
+```{r US data setup}
+
+USdata <- subset(data,IDN ==9 | IDN == 10 | IDN == 11)
+USdata$Country <- as.factor(USdata$IDN)
+levels(USdata$Country)[levels(USdata$Country)=='9'] <- 'USA-African American'
+levels(USdata$Country)[levels(USdata$Country)=='10'] <- 'USA-European American'
+levels(USdata$Country)[levels(USdata$Country)=='11'] <- 'USA-Hispanic'
+
+
+```
+
+## Plotting Family Decision Making in the United States
+
+
+```{r multilevel model, echo = FALSE}
+#TEXT FOR IF I INCLUDE MY MODEL:   My first step was to create a multi-level model. The model below uses Family Decision Making as the outcome. The inputs were gender, country, and an interaction between age and country.
+
+#model I used for FDM. Looking to incorporate this somehow? Not sure how.
+USdata$Country <- relevel(USdata$Country, ref = 'USA-European American')
+USdata$AgeCM <- USdata$Age - mean(USdata$Age, na.rm=TRUE) #mean center age
+USdata$FDMCM <- USdata$FDM - mean(USdata$FDM, na.rm=TRUE) #mean center age
+data$Age_Exact <- round(data$Age, digits = 0)
+model.FDM_USA <- lmer(FDM ~ SES + ChGender + AgeCM + Country +   + Country*AgeCM + (1|ID), data = USdata)
+```
+
+I can begin by making a plot of Age and Family Decision Making. 
+
+```{r base plot, warning = FALSE}
+
+USdata %>%
+ggplot(
+  aes(
+    x=Age,
+    y = FDM,
+    )) + 
+  geom_smooth(
+    method = "loess",
+    formula = y~x,
+    se = FALSE, 
+    color = "black")+
+  theme_bw() +
+  labs(
+    x = "Age", 
+    y = "Family Decision Making", 
+    color = "Ethnicity",
+    title = "Age of Family Decision Making in the United States"
+    )
+
+```
+
+From this plot, we can see that as age increases, so does family decision making. There is a level off around 14- 16 years old, with an increase after age 16.
+
+
+This is cool, but we can make it better by creating graphs for each ethnicity to examine differences by ethnicity. 
+
+```{r plots broken out, warning = FALSE}
+
+USdata %>%
+ggplot(
+  aes(
+    x=Age,
+    y = FDM,
+    )) + 
+  geom_smooth(
+    method = "loess",
+    formula = y~x,
+    se = FALSE, 
+    color = "black")+
+  facet_wrap(~Country) +
+  theme_bw() +
+  labs(
+    x = "Age", 
+    y = "Family Decision Making", 
+    color = "Ethnicity",
+    title = "USA Age and Ethnicity Effects on Family Decision Making"
+    )
+
+```
+
+This shows that overall the trend is similar, but there are differences present. For example, European Americans start off higher in adolescent driven decisions than other ethnicities.
+
+
+We can overlay the lines to better see the ethnicity differences. 
+
+```{r overlay plot, warning = FALSE}
+
+USdata %>%
+ggplot(
+  aes(
+    x=Age,
+    y = FDM,
+    color = Country
+    )) + 
+ geom_smooth(
+   method = "loess",
+   formula = y~x,
+   se = FALSE) +
+  theme_bw() +
+  scale_color_manual(values=c("#0000ff", "#ff0000","#008000")) +
+  labs(
+    x = "Age", 
+    y = "Family Decision Making", 
+    color = "Ethnicity",
+    title = "USA Age and Ethnicity Effects on Family Decision Making"
+    )
+
+```
+
+Additionally, we can combine this graph with the orignal graph to compare each ethnicity to the overall average.
+
+```{r plot model, warning = FALSE}
+
+plot_grph <- USdata %>%
+ggplot(
+  aes(
+    x=Age,
+    y = FDM,
+    color = Country
+    )) + 
+  geom_smooth(
+    aes(group = 1),
+    method = "loess",
+    formula = y~x,
+    se = TRUE,
+    alpha = .3,
+    color = "black"
+  ) 
+
+
+plot_grph +
+   geom_line(stat="smooth",
+   method = "loess",
+   formula = y~x,
+   se = FALSE) +
+  theme_bw() +
+  scale_color_manual(values=c("#0000ff", "#ff0000","#008000")) +
+  labs(
+    x = "Age", 
+    y = "Family Decision Making", 
+    color = "Ethnicity",
+    title = "USA Age and Ethnicity Effects on Family Decision Making"
+    )
+
+```
+
+We can see that the African American adolescents  closely follows the average Family Decision Making in the United States, while European American and Hispanic adolescents straddle the average.

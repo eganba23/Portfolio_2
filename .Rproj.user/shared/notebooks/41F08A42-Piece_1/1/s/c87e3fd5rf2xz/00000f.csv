@@ -1,0 +1,8 @@
+"0",""
+"0","USdata <- subset(data,IDN ==9 | IDN == 10 | IDN == 11)"
+"0","USdata$Country <- as.factor(USdata$IDN)"
+"0","levels(USdata$Country)[levels(USdata$Country)=='9'] <- 'USA-African American'"
+"0","levels(USdata$Country)[levels(USdata$Country)=='10'] <- 'USA-European American'"
+"0","levels(USdata$Country)[levels(USdata$Country)=='11'] <- 'USA-Hispanic'"
+"0",""
+"0",""
