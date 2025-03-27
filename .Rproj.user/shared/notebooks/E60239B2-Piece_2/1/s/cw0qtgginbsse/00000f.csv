@@ -1,5 +1,0 @@
-"0","#TEXT FOR IF I INCLUDE MY MODEL:   My first step was to create a multi-level model. The model below uses Family Decision Making as the outcome. The inputs were gender, country, and an interaction between age and country."
-"0",""
-"0","#model I used for FDM. Looking to incorporate this somehow? Not sure how."
-"0","data$Age_Exact <- round(data$Age, digits = 0)"
-"0","model.FDM_outcome <- lmer(FDM ~  SES + ChGender + AgeCM + Country + AgeCM*Country + (1|ID), data = data)"

@@ -1,0 +1,7 @@
+"0","#SUGGESTIONS TO IMPROVE"
+"0","#change to geom_smooth, collapse country data (ex, all US data), change colors to represent continents, change title to better reflect data, look at doing a spaghetti plot (each person put on a graph)."
+"0",""
+"0","#can make a faceted plot by index - allows to see changes over time by person using [ facet_wrap(~Index1) + ]"
+"0",""
+"0","#package ggthemes <- classic color schemes that are used by several"
+"0",""
