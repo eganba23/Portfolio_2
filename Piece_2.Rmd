@@ -33,7 +33,7 @@ data <- read_spss("FDM Dataset for Data Science_2.sav")
 
 
 
-## Tragectories and Variations of Family Decision Making Across Countires
+## Trajectories and Variations of Family Decision Making Across Countires
 
 In this piece, I will further demonstrate my graphing abilities.
 
